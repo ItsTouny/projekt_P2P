@@ -74,7 +74,8 @@ class Commands:
 
         key, amount = args
         if key.split('/')[1] != self.get_my_ip():
-            self.forward_command(key.split('/')[1],f"AD {key} {amount}")
+            res = self.forward_command(key.split('/')[1],f"AD {key} {amount}")
+            send(conn, res)
         else:
             try:
                 amount = int(amount)
@@ -101,7 +102,8 @@ class Commands:
 
         key, amount = args
         if key.split('/')[1] != self.get_my_ip():
-            self.forward_command(key.split('/')[1],f"AW {key} {amount}")
+            res = self.forward_command(key.split('/')[1],f"AW {key} {amount}")
+            send(conn, res)
         else:
             try:
                 amount = int(amount)
@@ -132,7 +134,8 @@ class Commands:
 
         key = args[0]
         if key.split('/')[1] != self.get_my_ip():
-            self.forward_command(key.split('/')[1],f"AB {key}")
+            res = self.forward_command(key.split('/')[1],f"AB {key}")
+            send(conn, res)
 
         with self.lock:
             accounts = load_accounts()
