@@ -1,11 +1,11 @@
 import socket
 import threading
 import command
-import parser
+import myParser
 
 HOST = "127.0.0.1"
 PORT = 65525
-p = parser.Parser()
+p = myParser.Parser()
 cur_command = command.Commands()
 
 def listen():
