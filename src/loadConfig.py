@@ -13,7 +13,6 @@ def load_config():
     # Default values in case the file is missing
     defaults = {
         "PORT": 65525,
-        "IP": "127.0.0.1",
         "timeout": 5
     }
 
@@ -29,7 +28,6 @@ def load_config():
             # Safely get values (use defaults if keys are missing)
             config = {
                 "PORT": data.get("PORT", defaults["PORT"]),
-                "IP": data.get("IP", defaults["IP"]),
                 "timeout": data.get("timeout", defaults["timeout"])
             }
             return config

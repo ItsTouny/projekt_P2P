@@ -7,7 +7,7 @@ import loadConfig
 
 config = loadConfig.load_config()
 
-HOST = config["IP"]
+HOST = "0.0.0.0"
 PORT = config["PORT"]
 TIMEOUT = config["timeout"]
 
@@ -33,12 +33,13 @@ class BankAdapter:
         try:
             self.commands.execute(msg, dummy_conn)
         except Exception as e:
-            return f"ER Chyba: {e}"
+            return f"Error Chyba: {e}"
         return dummy_conn.response
 
 def handle_client(conn, addr, lock):
-    logging.info(f"Nové spojení: {addr}")
+    logging.info(f"New connection: {addr}")
     commands = Commands(lock)
+    HOST = commands.get_my_ip()
     conn.setblocking(True)
 
     with conn:
