@@ -73,23 +73,26 @@ class Commands:
             return
 
         key, amount = args
-        try:
-            amount = int(amount)
-        except:
-            send(conn, "ER číslo bankovního účtu a částka není ve správném formátu.")
-            return
-
-        with self.lock:
-            accounts = load_accounts()
-
-            if key not in accounts:
-                send(conn, "ER Formát čísla účtu není správný.")
+        if key.split('/')[1] != self.get_my_ip():
+            self.forward_command(key.split('/')[1],f"AD {key} {amount}")
+        else:
+            try:
+                amount = int(amount)
+            except:
+                send(conn, "ER číslo bankovního účtu a částka není ve správném formátu.")
                 return
 
-            accounts[key] += amount
-            save_accounts(accounts)
+            with self.lock:
+                accounts = load_accounts()
 
-        send(conn, "AD")
+                if key not in accounts:
+                    send(conn, "ER Formát čísla účtu není správný.")
+                    return
+
+                accounts[key] += amount
+                save_accounts(accounts)
+
+            send(conn, "AD")
 
     def account_withdraw(self, conn, args):
         if len(args) != 2:
@@ -97,27 +100,30 @@ class Commands:
             return
 
         key, amount = args
-        try:
-            amount = int(amount)
-        except:
-            send(conn, "ER číslo bankovního účtu a částka není ve správném formátu.")
-            return
-
-        with self.lock:
-            accounts = load_accounts()
-
-            if key not in accounts:
-                send(conn, "ER Formát čísla účtu není správný.")
+        if key.split('/')[1] != self.get_my_ip():
+            self.forward_command(key.split('/')[1],f"AW {key} {amount}")
+        else:
+            try:
+                amount = int(amount)
+            except:
+                send(conn, "ER číslo bankovního účtu a částka není ve správném formátu.")
                 return
 
-            if accounts[key] < amount:
-                send(conn, "ER Není dostatek finančních prostředků.")
-                return
+            with self.lock:
+                accounts = load_accounts()
 
-            accounts[key] -= amount
-            save_accounts(accounts)
+                if key not in accounts:
+                    send(conn, "ER Formát čísla účtu není správný.")
+                    return
 
-        send(conn, "AW")
+                if accounts[key] < amount:
+                    send(conn, "ER Není dostatek finančních prostředků.")
+                    return
+
+                accounts[key] -= amount
+                save_accounts(accounts)
+
+            send(conn, "AW")
 
     def account_balance(self, conn, args):
         if len(args) != 1:
@@ -125,6 +131,8 @@ class Commands:
             return
 
         key = args[0]
+        if key.split('/')[1] != self.get_my_ip():
+            self.forward_command(key.split('/')[1],f"AB {key}")
 
         with self.lock:
             accounts = load_accounts()
@@ -177,3 +185,18 @@ class Commands:
             return "127.0.0.1"
         finally:
             s.close()
+
+    def forward_command(self,target_ip, command):
+
+        for port in range(65525, 65536):
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.settimeout(0.5)
+                    s.connect((target_ip, port))
+                    s.sendall((command + "\r\n").encode())
+                    response = s.recv(1024).decode().strip()
+                    return response
+            except (ConnectionRefusedError, socket.timeout):
+                continue
+
+        return "ER Bank unreachable"
