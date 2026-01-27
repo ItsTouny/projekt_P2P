@@ -20,7 +20,8 @@ def handle_client(conn, addr, lock):
 
 def run_server():
     lock = multiprocessing.Lock()
-
+    commands = Commands(lock)
+    HOST = commands.get_my_ip()
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, PORT))
         s.listen()
