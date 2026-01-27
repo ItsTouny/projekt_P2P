@@ -3,7 +3,7 @@ import threading
 import logging
 import command
 import myParser
-import gui  # Importing the GUI file
+import gui
 
 # --- Configuration ---
 HOST = "127.0.0.1"
