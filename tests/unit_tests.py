@@ -12,7 +12,7 @@ sys.path.insert(0, src_path)
 from src import main
 
 CONFIG = {"port": 65525, "client_timeout": 60, "p2p_timeout": 1.0}
-CLIENT_TIMEOUT = 60
+CLIENT_TIMEOUT = CONFIG["client_timeout"]
 
 
 @pytest.fixture
