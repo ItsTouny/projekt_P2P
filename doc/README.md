@@ -57,3 +57,7 @@ Settings are stored in `config/config.json`:
 * **User Interface (`src/ui.py`)**:
     * Source: [ItsTouny/projects - projekt_databaze](https://github.com/ItsTouny/projects/blob/main/projekt_databaze/src/main.py)
     * Description: The base structure of the Tkinter GUI and tab switching logic was adapted from this project.
+
+* **Unit tests (`tests/unit_tests.py`)**:
+    * Source: [FilipPistek - ImageBatchProcessor](https://github.com/FilipPistek/ImageBatchProcessor/blob/master/ImageBatchProcessorTests/FileValidatorTests.cs)
+    * Description: Basic logic for making unit tests and converting code from C# to Python
