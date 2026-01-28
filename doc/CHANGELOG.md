@@ -8,7 +8,7 @@
 * Added configuration and client timeouts.
 
 ## 2026-01-28 - Filip Pištěk
-* Created CHANGELOG.md and README.md files.
+* Created and updated CHANGELOG.md and README.md files.
 * Added unit tests.
 * General project updates.
 
