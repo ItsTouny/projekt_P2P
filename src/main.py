@@ -1,46 +1,32 @@
 import socket
 import multiprocessing
-import logging
+import subprocess
+import sys
+import time
+import os
 from command import Commands
-import gui
-import loadConfig
+from config_loader import load_config
 
-config = loadConfig.load_config()
+CONFIG = load_config()
+PORT = CONFIG["port"]
+CLIENT_TIMEOUT = CONFIG["client_timeout"]
 
-HOST = "0.0.0.0"
-PORT = config["PORT"]
-TIMEOUT = config["timeout"]
-
-class DummyConn:
-    def __init__(self):
-        self.response = ""
-
-    def sendall(self, data):
-        if isinstance(data, bytes):
-            self.response += data.decode('utf-8')
-        else:
-            self.response += str(data)
-
-class BankAdapter:
-    def __init__(self, ip, port, lock):
-        self.my_ip = ip
-        self.my_port = port
-        self.lock = lock
-        self.commands = Commands(lock)
-
-    def execute_command(self, msg):
-        dummy_conn = DummyConn()
-        try:
-            self.commands.execute(msg, dummy_conn)
-        except Exception as e:
-            return f"Error Chyba: {e}"
-        return dummy_conn.response
 
 def handle_client(conn, addr, lock):
-    logging.info(f"New connection: {addr}")
+    """
+    Handles a single client connection.
+    If the connection times out due to inactivity, sends a notification message
+    to the client before closing the connection.
+
+    Args:
+        conn (socket.socket): Client connection socket.
+        addr (tuple): Client address info (IP, Port).
+        lock (multiprocessing.RLock): Shared re-entrant lock.
+    """
     commands = Commands(lock)
-    HOST = commands.get_my_ip()
-    conn.setblocking(True)
+    client_ip = addr[0]
+
+    conn.settimeout(CLIENT_TIMEOUT)
 
     with conn:
         while True:
@@ -48,54 +34,60 @@ def handle_client(conn, addr, lock):
                 data = conn.recv(1024)
                 if not data:
                     break
-                message = data.decode().strip()
-                logging.info(f"Command from {addr}: {message}")
-                commands.execute(message, conn)
-            except Exception as e:
-                logging.error(f"Communication error: {e}")
+                commands.execute(data.decode().strip(), conn, addr=client_ip)
+            except socket.timeout:
+                try:
+                    msg = "TIMEOUT: Connection closed due to inactivity.\r\n"
+                    conn.sendall(msg.encode())
+                except OSError:
+                    pass
+                break
+            except ConnectionResetError:
                 break
 
 
-def setup_server_socket():
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    s.bind((HOST, PORT))
-    s.listen()
-    s.setblocking(False)
-    logging.info(f"Server running on {HOST}:{PORT}")
-    return s
+def run_server_process():
+    """
+    Initializes and runs the TCP server.
+    Spawns a new process for each incoming connection.
+    """
+    lock = multiprocessing.RLock()
+    commands = Commands(lock)
+    host = commands.get_my_ip()
 
-
-def check_for_clients(server_socket, lock, app_root):
     try:
-        conn, addr = server_socket.accept()
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            s.bind((host, PORT))
+            s.listen()
 
-        p = multiprocessing.Process(
-            target=handle_client,
-            args=(conn, addr, lock)
-        )
-        p.daemon = True
-        p.start()
-
-    except BlockingIOError:
+            while True:
+                conn, addr = s.accept()
+                p = multiprocessing.Process(
+                    target=handle_client,
+                    args=(conn, addr, lock),
+                    daemon=True
+                )
+                p.start()
+    except OSError:
         pass
-    except Exception as e:
-        logging.error(f"Socket error: {e}")
-
-    app_root.after(100, check_for_clients, server_socket, lock, app_root)
 
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
-    lock = multiprocessing.Lock()
+    server_process = multiprocessing.Process(target=run_server_process, daemon=False)
+    server_process.start()
 
-    server_socket = setup_server_socket()
+    time.sleep(1)
 
-    adapter = BankAdapter(HOST, PORT, lock)
-    app = gui.BankGUI(adapter)
+    ui_path = "src/ui.py" if os.path.exists("src/ui.py") else "ui.py"
 
-    check_for_clients(server_socket, lock, app.root)
-
-    app.start()
+    try:
+        ui = subprocess.Popen([sys.executable, ui_path])
+        ui.wait()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server_process.terminate()
+        server_process.join()

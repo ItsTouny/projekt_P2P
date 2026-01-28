@@ -1,4 +1,5 @@
 {
-  "PORT": 65525,
-  "timeout": 5
+  "port": 65525,
+  "client_timeout": 60,
+  "p2p_timeout": 1.0
 }
