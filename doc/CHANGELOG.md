@@ -1,27 +1,28 @@
 # Changelog
 
 ## 2026-01-28 - Tony Menšík
-* Úprava CHANGELOG.md.
-* Úprava README.md.
-* Předělání UI, implementace logování.
-* Přidání konfigurace a timeoutů pro klienty.
+* Added an executable file.
+* Updated CHANGELOG.md.
+* Updated README.md.
+* Redesigned UI, implemented logging.
+* Added configuration and client timeouts.
 
 ## 2026-01-28 - Filip Pištěk
-* Vytvoření souborů CHANGELOG.md a README.md.
-* Přidání unit testů.
-* Obecné aktualizace projektu.
+* Created CHANGELOG.md and README.md files.
+* Added unit tests.
+* General project updates.
 
 ## 2026-01-27 - Tony Menšík
-* Implementace přeposílání příkazů na jinou IP a oprava chyb v této logice.
-* Start serveru na dynamické IP adrese.
-* Přidání podpory pro čtení a zápis souborů.
-* Implementace procesů  pro připojení více uživatelů.
-* Oprava parseru příkazů.
-* Přidání základní konfigurace.
+* Implemented command forwarding to different IPs and fixed errors in this logic.
+* Server startup on dynamic IP address.
+* Added support for file reading and writing.
+* Implemented processes to support multiple user connections.
+* Fixed command parser.
+* Added basic configuration.
 
 ## 2026-01-27 - Filip Pištěk
-* Implementace uživatelského rozhraní (UI).
-* Aktualizace GUI a přidání skriptu `loadConfig.py`.
+* Implemented User Interface (UI).
+* Updated GUI and added `loadConfig.py` script.
 
 ## 2026-01-26 - Tony Menšík
-* Prvotní implementace - základní příkazy a TCP listener.
+* Initial implementation - basic commands and TCP listener.
